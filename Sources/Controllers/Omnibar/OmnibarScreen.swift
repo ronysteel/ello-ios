@@ -116,6 +116,7 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
     let cancelButton = UIButton()
     let reorderButton = UIButton()
     let cameraButton = UIButton()
+    let textButton = UIButton()
 
 // MARK: keyboard buttons
     var keyboardButtonViews: [UIView]!
@@ -145,7 +146,7 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
 
         super.init(frame: frame)
 
-        backgroundColor = UIColor.white
+        backgroundColor = .white
         autoCompleteContainer.frame = CGRect(x: 0, y: 0, width: frame.size.width, height: 0)
 
         editableRegions = generateEditableRegions(submitableRegions)
@@ -212,10 +213,17 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
 
         cameraButton.contentEdgeInsets = UIEdgeInsets(tops: 4, sides: 9.5)
         cameraButton.setImages(.camera)
-        cameraButton.addTarget(self, action: #selector(addImageAction), for: .touchUpInside)
+        cameraButton.addTarget(self, action: #selector(cameraButtonTapped), for: .touchUpInside)
+
+        textButton.setAttributedTitle(NSAttributedString(string: "T", attributes: [
+            NSAttributedStringKey.font: UIFont.defaultItalicFont(),
+            NSAttributedStringKey.foregroundColor: UIColor.greyA
+        ]), for: .normal)
+        textButton.addTarget(self, action: #selector(textButtonTapped), for: .touchUpInside)
+        textButton.isHidden = true
 
         for button in [tabbarSubmitButton, keyboardSubmitButton] {
-            button.backgroundColor = UIColor.black
+            button.backgroundColor = .black
             button.setImages(.pencil, white: true)
             button.setTitle(InterfaceString.Omnibar.CreatePostButton, for: .normal)
             button.setTitleColor(.white, for: .normal)
@@ -251,7 +259,7 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
         stopEditingSwipeGesture.direction = .down
         textScrollView.addGestureRecognizer(stopEditingSwipeGesture)
         textScrollView.clipsToBounds = true
-        textContainer.backgroundColor = UIColor.white
+        textContainer.backgroundColor = .white
 
         textView.clipsToBounds = false
         textView.isEditable = true
@@ -270,9 +278,9 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
             linkButton,
         ]
 
-        keyboardButtonsContainer.backgroundColor = UIColor.greyC
+        keyboardButtonsContainer.backgroundColor = .greyC
         for button in keyboardButtonViews as [UIView] {
-            button.backgroundColor = UIColor.greyA
+            button.backgroundColor = .greyA
             button.frame.size = Size.keyboardButtonSize
         }
 
@@ -329,6 +337,7 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
         for button in toolbarButtonViews as [UIView] {
             self.addSubview(button)
         }
+        self.addSubview(textButton)
 
         for button in keyboardButtonViews as [UIView] {
             keyboardButtonsContainer.addSubview(button)
@@ -572,6 +581,7 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
             buttonX -= view.frame.size.width + Size.toolbarRightPadding
             view.frame.origin = CGPoint(x: buttonX, y: toolbarTop)
         }
+        textButton.frame = cameraButton.frame
 
         buyButton.frame = buyButton.frame.shift(left: Size.additionalBuyPadding)
 
@@ -876,10 +886,26 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
 // MARK: Camera / Image Picker
 
     @objc
-    func addImageAction() {
-        stopEditing()
-        let pickerSheet = UIImagePickerController.imagePickerSheetForImagePicker(callback: openImageSheet)
-        self.delegate?.omnibarPresentController(pickerSheet)
+    func cameraButtonTapped() {
+        cameraButton.isHidden = true
+        textButton.isHidden = false
+        textView.inputAccessoryView = nil
+        _ = textView.resignFirstResponder()
+        _ = textView.becomeFirstResponder()
+
+        // stopEditing()
+        //
+        // let pickerSheet = UIImagePickerController.imagePickerSheetForImagePicker(callback: openImageSheet)
+        // self.delegate?.omnibarPresentController(pickerSheet)
+    }
+
+    @objc
+    func textButtonTapped() {
+        cameraButton.isHidden = false
+        textButton.isHidden = true
+        textView.inputAccessoryView = keyboardButtonView
+        _ = textView.resignFirstResponder()
+        _ = textView.becomeFirstResponder()
     }
 
 }
