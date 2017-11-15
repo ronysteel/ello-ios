@@ -463,17 +463,16 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
     }
 
     func startEditingAtPath(_ path: IndexPath) {
-        if let (_, region) = tableViewRegions.safeValue(path.row), region.isText {
-            currentTextPath = path
-            textScrollView.isHidden = false
-            textScrollView.contentOffset = regionsTableView.contentOffset
-            textScrollView.contentInset = regionsTableView.contentInset
-            textScrollView.scrollIndicatorInsets = regionsTableView.scrollIndicatorInsets
-            textScrollView.scrollsToTop = true
-            regionsTableView.scrollsToTop = false
-            textView.attributedText = region.text
-            updateEditingAtPath(path)
-        }
+        guard let (_, region) = tableViewRegions.safeValue(path.row), region.isText else { return }
+        currentTextPath = path
+        textScrollView.isHidden = false
+        textScrollView.contentOffset = regionsTableView.contentOffset
+        textScrollView.contentInset = regionsTableView.contentInset
+        textScrollView.scrollIndicatorInsets = regionsTableView.scrollIndicatorInsets
+        textScrollView.scrollsToTop = true
+        regionsTableView.scrollsToTop = false
+        textView.attributedText = region.text
+        updateEditingAtPath(path)
     }
 
     func updateEditingAtPath(_ path: IndexPath, scrollPosition: UITableViewScrollPosition = .middle) {
