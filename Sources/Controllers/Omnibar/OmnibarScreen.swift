@@ -451,19 +451,24 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
     }
 
     func updateText(_ text: NSAttributedString, atPath path: IndexPath) {
-        let newRegion: OmnibarRegion = .attributedText(text)
-        let (index, _) = editableRegions[path.row]
-        if let index = index {
-            submitableRegions[index] = newRegion
-            editableRegions[path.row] = (index, newRegion)
+        guard
+            let (_index, _) = editableRegions.safeValue(path.row),
+            let index = _index
+        else { return }
 
-            regionsTableView.reloadData()
-            updateEditingAtPath(path, scrollPosition: .bottom)
-        }
+        let newRegion: OmnibarRegion = .attributedText(text)
+        submitableRegions[index] = newRegion
+        editableRegions[path.row] = (index, newRegion)
+
+        regionsTableView.beginUpdates()
+        regionsTableView.reloadRows(at: [path], with: .automatic)
+        regionsTableView.endUpdates()
+        updateEditingAtPath(path, scrollPosition: .bottom)
     }
 
     func startEditingAtPath(_ path: IndexPath) {
         guard let (_, region) = tableViewRegions.safeValue(path.row), region.isText else { return }
+
         currentTextPath = path
         textScrollView.isHidden = false
         textScrollView.contentOffset = regionsTableView.contentOffset
@@ -476,7 +481,9 @@ class OmnibarScreen: UIView, OmnibarScreenProtocol {
     }
 
     func updateEditingAtPath(_ path: IndexPath, scrollPosition: UITableViewScrollPosition = .middle) {
-        let rect = regionsTableView.rectForRow(at: path)
+        guard let cell = regionsTableView.cellForRow(at: path) else { return }
+
+        let rect = cell.frame//regionsTableView.rectForRow(at: path)
         textScrollView.contentSize = regionsTableView.contentSize
         textView.frame = OmnibarTextCell.boundsForTextView(rect)
         textContainer.frame = textView.frame.grow(all: 10)
